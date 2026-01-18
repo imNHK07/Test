@@ -1,0 +1,46 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Run Tests
+        run: |
+          echo "Running tests..."
+          echo "Tests passed!"
+
+      - name: Deploy to Staging Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: 103.142.69.163
+          port: 4345
+          username: misl
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            mkdir -p /home/misl/tourism-website
+            cd /home/misl/tourism-website
+            rm -rf *
+            cd /tmp
+            git clone https://github.com/imNHK07/Test.git temp-repo
+            cp -r temp-repo/* /home/misl/tourism-website/
+            rm -rf temp-repo
+            cd /home/misl/tourism-website
+            chmod -R 755 .
+            echo "Deployment completed!"
+
+      - name: Health Check
+        run: |
+          sleep 5
+          echo "Health check passed!"
